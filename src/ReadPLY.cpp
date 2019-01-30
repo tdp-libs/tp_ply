@@ -370,7 +370,7 @@ void readPLYStream(std::istream& inputStream,
     trifanDetails   .geometryType = triangleFan;
 
     //-- Parse the header --------------------------------------------------------------------------
-    bool printProperties = true;
+    bool printProperties = false;
     for (const auto& e : file.get_elements())
     {
       if(printProperties)
