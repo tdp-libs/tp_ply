@@ -59,45 +59,48 @@ void writePLYStream(std::ostream& outputStream,
 
   tinyply::PlyFile file;
 
-  size_t indexesSize    = verts.size();
-  size_t indexesPerFace = 0;
-
-  for(const auto& indexes : geometry.indexes)
-  {
-    if(indexes.type == geometry.triangles)
-    {
-      indexesSize = indexesSize/3;
-      indexesPerFace = 3;
-      break;
-    }
-  }
-
   file.add_properties_to_element(
         "vertex", { "x", "y", "z" },
-        tinyply::Type::FLOAT32, indexesSize, reinterpret_cast<uint8_t*>   (verts.data()), tinyply::Type::INVALID, indexesPerFace);
+        tinyply::Type::FLOAT32, verts.size(), reinterpret_cast<uint8_t*>   (verts.data()), tinyply::Type::INVALID, 0);
 
   file.add_properties_to_element(
         "vertex", { "nx", "ny", "nz" },
-        tinyply::Type::FLOAT32, indexesSize, reinterpret_cast<uint8_t*> (normals.data()), tinyply::Type::INVALID, indexesPerFace);
+        tinyply::Type::FLOAT32, verts.size(), reinterpret_cast<uint8_t*> (normals.data()), tinyply::Type::INVALID, 0);
 
   file.add_properties_to_element(
         "vertex", { "red", "green", "blue", "alpha" },
-        tinyply::Type::FLOAT32, indexesSize, reinterpret_cast<uint8_t*>  (colors.data()), tinyply::Type::INVALID, indexesPerFace);
+        tinyply::Type::FLOAT32, verts.size(), reinterpret_cast<uint8_t*>  (colors.data()), tinyply::Type::INVALID, 0);
 
   file.add_properties_to_element(
         "vertex", { "u", "v" },
-        tinyply::Type::FLOAT32, indexesSize, reinterpret_cast<uint8_t*>(textures.data()), tinyply::Type::INVALID, indexesPerFace);
+        tinyply::Type::FLOAT32, verts.size(), reinterpret_cast<uint8_t*>(textures.data()), tinyply::Type::INVALID, 0);
 
   for(const auto& indexes : geometry.indexes)
   {
+    auto listType = tinyply::Type::INVALID;
+    size_t stride=0;
+    size_t indexCount = indexes.indexes.size();
+
     std::string type = "face";
     if(indexes.type == geometry.triangleStrip)
       type = "tristrips";
     else if(indexes.type == geometry.triangleFan)
       type = "trifans";
+    else if(indexes.type == geometry.triangles)
+    {
+      listType = tinyply::Type::UINT8;
+      stride = 3;
+      indexCount = indexCount/3;
+      type = "face";
+    }
 
-    file.add_properties_to_element(type, { "vertex_indices" },
-                                   tinyply::Type::INT32, indexes.indexes.size(), const_cast<uint8_t*>(reinterpret_cast<const uint8_t*>(indexes.indexes.data())), tinyply::Type::INVALID, 0);
+    file.add_properties_to_element(
+          type, { "vertex_indices" },
+          tinyply::Type::INT32,
+          indexCount,
+          const_cast<uint8_t*>(reinterpret_cast<const uint8_t*>(indexes.indexes.data())),
+          listType,
+          stride);
   }
 
   file.write(outputStream, true);
