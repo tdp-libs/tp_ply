@@ -11,8 +11,8 @@ namespace tp_ply
 
 //##################################################################################################
 void writePLYFile(const std::string & filePath,
-                 std::string& error,
-                 const tp_math_utils::Geometry3D& geometry)
+                  std::string& error,
+                  const tp_math_utils::Geometry3D& geometry)
 {
   try
   {
@@ -34,8 +34,8 @@ void writePLYFile(const std::string & filePath,
 
 //##################################################################################################
 void writePLYStream(std::ostream& outputStream,
-                   std::string& error,
-                   const tp_math_utils::Geometry3D& geometry)
+                    std::string& error,
+                    const tp_math_utils::Geometry3D& geometry)
 {
   TP_UNUSED(error);
 
@@ -59,17 +59,34 @@ void writePLYStream(std::ostream& outputStream,
 
   tinyply::PlyFile file;
 
-  file.add_properties_to_element("vertex", { "x", "y", "z" },
-      tinyply::Type::FLOAT32, verts.size(), reinterpret_cast<uint8_t*>(verts.data()), tinyply::Type::INVALID, 0);
+  size_t indexesSize    = verts.size();
+  size_t indexesPerFace = 0;
 
-  file.add_properties_to_element("vertex", { "nx", "ny", "nz" },
-      tinyply::Type::FLOAT32, normals.size(), reinterpret_cast<uint8_t*>(normals.data()), tinyply::Type::INVALID, 0);
+  for(const auto& indexes : geometry.indexes)
+  {
+    if(indexes.type == geometry.triangles)
+    {
+      indexesSize = indexesSize/3;
+      indexesPerFace = 3;
+      break;
+    }
+  }
 
-  file.add_properties_to_element("vertex", { "red", "green", "blue", "alpha" },
-      tinyply::Type::FLOAT32, colors.size(), reinterpret_cast<uint8_t*>(colors.data()), tinyply::Type::INVALID, 0);
+  file.add_properties_to_element(
+        "vertex", { "x", "y", "z" },
+        tinyply::Type::FLOAT32, indexesSize, reinterpret_cast<uint8_t*>   (verts.data()), tinyply::Type::INVALID, indexesPerFace);
 
-  file.add_properties_to_element("vertex", { "u", "v" },
-      tinyply::Type::FLOAT32, textures.size(), reinterpret_cast<uint8_t*>(textures.data()), tinyply::Type::INVALID, 0);
+  file.add_properties_to_element(
+        "vertex", { "nx", "ny", "nz" },
+        tinyply::Type::FLOAT32, indexesSize, reinterpret_cast<uint8_t*> (normals.data()), tinyply::Type::INVALID, indexesPerFace);
+
+  file.add_properties_to_element(
+        "vertex", { "red", "green", "blue", "alpha" },
+        tinyply::Type::FLOAT32, indexesSize, reinterpret_cast<uint8_t*>  (colors.data()), tinyply::Type::INVALID, indexesPerFace);
+
+  file.add_properties_to_element(
+        "vertex", { "u", "v" },
+        tinyply::Type::FLOAT32, indexesSize, reinterpret_cast<uint8_t*>(textures.data()), tinyply::Type::INVALID, indexesPerFace);
 
   for(const auto& indexes : geometry.indexes)
   {
@@ -80,7 +97,7 @@ void writePLYStream(std::ostream& outputStream,
       type = "trifans";
 
     file.add_properties_to_element(type, { "vertex_indices" },
-        tinyply::Type::INT32, indexes.indexes.size(), const_cast<uint8_t*>(reinterpret_cast<const uint8_t*>(indexes.indexes.data())), tinyply::Type::INVALID, 0);
+                                   tinyply::Type::INT32, indexes.indexes.size(), const_cast<uint8_t*>(reinterpret_cast<const uint8_t*>(indexes.indexes.data())), tinyply::Type::INVALID, 0);
   }
 
   file.write(outputStream, true);
