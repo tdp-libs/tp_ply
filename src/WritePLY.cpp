@@ -72,6 +72,10 @@ void writePLYStream(std::ostream& outputStream,
         tinyply::Type::FLOAT32, verts.size(), reinterpret_cast<uint8_t*>  (colors.data()), tinyply::Type::INVALID, 0);
 
   file.add_properties_to_element(
+        "vertex", { "s", "t" },
+        tinyply::Type::FLOAT32, verts.size(), reinterpret_cast<uint8_t*>(textures.data()), tinyply::Type::INVALID, 0);
+
+  file.add_properties_to_element(
         "vertex", { "u", "v" },
         tinyply::Type::FLOAT32, verts.size(), reinterpret_cast<uint8_t*>(textures.data()), tinyply::Type::INVALID, 0);
 
