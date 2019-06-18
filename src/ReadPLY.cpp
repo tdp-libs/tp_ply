@@ -9,6 +9,7 @@
 #include<memory>
 #include <fstream>
 #include <type_traits>
+#include <cstring>
 
 namespace tp_ply
 {
