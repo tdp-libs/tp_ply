@@ -3,10 +3,10 @@
 
 #include "tp_utils/Globals.h"
 
-#if defined(TP_MATH_UTILS_LIBRARY)
-#  define TP_MATH_UTILS_SHARED_EXPORT TP_EXPORT
+#if defined(TP_PLY_LIBRARY)
+#  define TP_PLY_SHARED_EXPORT TP_EXPORT
 #else
-#  define TP_MATH_UTILS_SHARED_EXPORT TP_IMPORT
+#  define TP_PLY_SHARED_EXPORT TP_IMPORT
 #endif
 
 //##################################################################################################
