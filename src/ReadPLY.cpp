@@ -377,8 +377,8 @@ void readPLYStream(std::istream& inputStream,
       if(printProperties)
       {
         tpWarning() << "element - " << e.name << " (" << e.size << ")" << std::endl;
-        for(const auto& p : e.properties)
-          tpWarning() << "\tproperty - " << p.name << " (" << tinyply::PropertyTable[p.propertyType].str << ")" << std::endl;
+        // for(const auto& p : e.properties)
+        //   tpWarning() << "\tproperty - " << p.name << " (" << tinyply::PropertyTable[p.propertyType].str << ")" << std::endl;
       }
 
       if(e.name == "vertex")
