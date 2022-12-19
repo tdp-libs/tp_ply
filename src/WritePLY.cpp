@@ -41,19 +41,16 @@ void writePLYStream(std::ostream& outputStream,
 
   std::vector<glm::vec3> verts   ;
   std::vector<glm::vec3> normals ;
-  std::vector<glm::vec4> colors  ;
   std::vector<glm::vec2> textures;
 
   verts   .reserve(geometry.verts.size());
   normals .reserve(geometry.verts.size());
-  colors  .reserve(geometry.verts.size());
   textures.reserve(geometry.verts.size());
 
   for(const auto& vert : geometry.verts)
   {
     verts   .emplace_back(vert.vert   );
     normals .emplace_back(vert.normal );
-    colors  .emplace_back(vert.color  );
     textures.emplace_back(vert.texture);
   }
 
@@ -66,10 +63,6 @@ void writePLYStream(std::ostream& outputStream,
   file.add_properties_to_element(
         "vertex", { "nx", "ny", "nz" },
         tinyply::Type::FLOAT32, verts.size(), reinterpret_cast<uint8_t*> (normals.data()), tinyply::Type::INVALID, 0);
-
-  file.add_properties_to_element(
-        "vertex", { "red", "green", "blue", "alpha" },
-        tinyply::Type::FLOAT32, verts.size(), reinterpret_cast<uint8_t*>  (colors.data()), tinyply::Type::INVALID, 0);
 
   file.add_properties_to_element(
         "vertex", { "s", "t" },
