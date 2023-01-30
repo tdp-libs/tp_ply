@@ -4,9 +4,9 @@
 #include "tp_utils/Globals.h"
 
 #if defined(TP_PLY_LIBRARY)
-#  define TP_PLY_SHARED_EXPORT TP_EXPORT
+#  define TP_PLY_EXPORT TP_EXPORT
 #else
-#  define TP_PLY_SHARED_EXPORT TP_IMPORT
+#  define TP_PLY_EXPORT TP_IMPORT
 #endif
 
 //##################################################################################################
