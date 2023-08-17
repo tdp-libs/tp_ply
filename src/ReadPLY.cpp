@@ -10,6 +10,7 @@
 #include <fstream>
 #include <type_traits>
 #include <cstring>
+#include <filesystem> 
 
 namespace tp_ply
 {
@@ -319,7 +320,7 @@ void readPLYFile(const std::string & filePath,
 {
   try
   {
-    std::ifstream ss(filePath, std::ios::binary);
+    std::ifstream ss(std::filesystem::u8path(filePath), std::ios::binary);
     if(ss.fail())
     {
       error = "failed to open: " + filePath;
