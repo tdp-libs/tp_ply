@@ -5,6 +5,7 @@
 #include "tinyply.h"
 
 #include <fstream>
+#include <filesystem> 
 
 namespace tp_ply
 {
@@ -16,7 +17,7 @@ void writePLYFile(const std::string & filePath,
 {
   try
   {
-    std::ofstream ss(filePath, std::ios::binary);
+    std::ofstream ss(std::filesystem::u8path(filePath), std::ios::binary);
     if(ss.fail())
     {
       error = "failed to open: " + filePath;
