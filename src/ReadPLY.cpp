@@ -5,6 +5,7 @@
 #include "tp_utils/DebugUtils.h"
 
 #include "tinyply.h"
+#include "tp_utils/FileUtils.h"
 
 #include<memory>
 #include <fstream>
@@ -320,7 +321,7 @@ void readPLYFile(const std::string & filePath,
 {
   try
   {
-    std::ifstream ss(std::filesystem::u8path(filePath), std::ios::binary);
+    std::ifstream ss(tp_utils::u8path(filePath), std::ios::binary);
     if(ss.fail())
     {
       error = "failed to open: " + filePath;

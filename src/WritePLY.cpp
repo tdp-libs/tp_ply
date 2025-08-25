@@ -3,6 +3,7 @@
 #include "tp_math_utils/Geometry3D.h"
 
 #include "tinyply.h"
+#include "tp_utils/FileUtils.h"
 
 #include <fstream>
 #include <filesystem> 
@@ -17,7 +18,7 @@ void writePLYFile(const std::string & filePath,
 {
   try
   {
-    std::ofstream ss(std::filesystem::u8path(filePath), std::ios::binary);
+    std::ofstream ss(tp_utils::u8path(filePath), std::ios::binary);
     if(ss.fail())
     {
       error = "failed to open: " + filePath;
