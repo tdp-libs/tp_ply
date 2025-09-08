@@ -1,9 +1,13 @@
-#ifndef tp_ply_ReadPLY_h
-#define tp_ply_ReadPLY_h
+#pragma once
 
 #include "tp_ply/Globals.h"
 
 #include <iosfwd>
+
+namespace tp_utils
+{
+class Progress;
+}
 
 namespace tp_math_utils
 {
@@ -14,23 +18,21 @@ namespace tp_ply
 {
 
 //##################################################################################################
-void readPLYFile(const std::string & filePath,
-                 std::string& error,
-                 int triangleFan,
-                 int triangleStrip,
-                 int triangles,
-                 bool reverse,
-                 tp_math_utils::Geometry3D& outputGeometry);
+bool TP_PLY_EXPORT readPLYFile(const std::string & filePath,
+                               int triangleFan,
+                               int triangleStrip,
+                               int triangles,
+                               bool reverse,
+                               tp_math_utils::Geometry3D& outputGeometry,
+                               tp_utils::Progress* progress);
 
 //##################################################################################################
-void readPLYStream(std::istream& inputStream,
-                   std::string& error,
-                   int triangleFan,
-                   int triangleStrip,
-                   int triangles,
-                   bool reverse,
-                   tp_math_utils::Geometry3D& outputGeometry);
+bool TP_PLY_EXPORT readPLYStream(std::istream& inputStream,
+                                 int triangleFan,
+                                 int triangleStrip,
+                                 int triangles,
+                                 bool reverse,
+                                 tp_math_utils::Geometry3D& outputGeometry,
+                                 tp_utils::Progress* progress);
 
 }
-
-#endif

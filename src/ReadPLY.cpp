@@ -3,15 +3,15 @@
 #include "tp_math_utils/Geometry3D.h"
 
 #include "tp_utils/DebugUtils.h"
+#include "tp_utils/FileUtils.h"
+#include "tp_utils/Progress.h"
 
 #include "tinyply.h"
-#include "tp_utils/FileUtils.h"
 
-#include<memory>
+#include <memory>
 #include <fstream>
 #include <type_traits>
 #include <cstring>
-#include <filesystem> 
 
 namespace tp_ply
 {
@@ -152,9 +152,9 @@ bool readVertices(const std::shared_ptr<tinyply::PlyData>& vertices, tp_math_uti
 
   switch(vertices->t)
   {
-  case tinyply::Type::FLOAT32: return add(float());
-  case tinyply::Type::FLOAT64: return add(double());
-  default: return false;
+    case tinyply::Type::FLOAT32: return add(float());
+    case tinyply::Type::FLOAT64: return add(double());
+    default: return false;
   }
 }
 
@@ -188,9 +188,9 @@ void readNormals(const std::shared_ptr<tinyply::PlyData>& normals, tp_math_utils
 
   switch(normals->t)
   {
-  case tinyply::Type::FLOAT32: return add(float());
-  case tinyply::Type::FLOAT64: return add(double());
-  default: return;
+    case tinyply::Type::FLOAT32: return add(float());
+    case tinyply::Type::FLOAT64: return add(double());
+    default: return;
   }
 }
 
@@ -223,9 +223,9 @@ void readTextures(const std::shared_ptr<tinyply::PlyData>& textures, tp_math_uti
 
   switch(textures->t)
   {
-  case tinyply::Type::FLOAT32: return add(float());
-  case tinyply::Type::FLOAT64: return add(double());
-  default: return;
+    case tinyply::Type::FLOAT32: return add(float());
+    case tinyply::Type::FLOAT64: return add(double());
+    default: return;
   }
 }
 
@@ -288,17 +288,17 @@ void readFaces(std::string& error,
 
     switch(faces.vertexIndices->t)
     {
-    case tinyply::Type::INT8:   addIndexes(int8_t());   return;
-    case tinyply::Type::INT16:  addIndexes(int16_t());  return;
-    case tinyply::Type::INT32:  addIndexes(int32_t());  return;
-    case tinyply::Type::UINT8:  addIndexes(uint8_t());  return;
-    case tinyply::Type::UINT16: addIndexes(uint16_t()); return;
-    case tinyply::Type::UINT32: addIndexes(uint32_t()); return;
-    default:
-    {
-      error = "Unsupported index type.";
-      return;
-    }
+      case tinyply::Type::INT8:   addIndexes(int8_t());   return;
+      case tinyply::Type::INT16:  addIndexes(int16_t());  return;
+      case tinyply::Type::INT32:  addIndexes(int32_t());  return;
+      case tinyply::Type::UINT8:  addIndexes(uint8_t());  return;
+      case tinyply::Type::UINT16: addIndexes(uint16_t()); return;
+      case tinyply::Type::UINT32: addIndexes(uint32_t()); return;
+      default:
+      {
+        error = "Unsupported index type.";
+        return;
+      }
     }
   }
   catch (const std::exception & e)
@@ -311,45 +311,49 @@ void readFaces(std::string& error,
 
 
 //##################################################################################################
-void readPLYFile(const std::string & filePath,
-                 std::string& error,
+bool readPLYFile(const std::string & filePath,
                  int triangleFan,
                  int triangleStrip,
                  int triangles,
                  bool reverse,
-                 tp_math_utils::Geometry3D& outputGeometry)
+                 tp_math_utils::Geometry3D& outputGeometry,
+                 tp_utils::Progress* progress)
 {
   try
   {
     std::ifstream ss(tp_utils::u8path(filePath), std::ios::binary);
     if(ss.fail())
     {
-      error = "failed to open: " + filePath;
-      return;
+      progress->addError("failed to open: " + filePath);
+      return false;
     }
 
-    readPLYStream(ss, error,
+    readPLYStream(ss,
                   triangleFan,
                   triangleStrip,
                   triangles,
                   reverse,
-                  outputGeometry);
+                  outputGeometry,
+                  progress);
   }
   catch (const std::exception & e)
   {
-    error = std::string("Caught tinyply exception: ") + e.what();
+    progress->addError(std::string("Caught tinyply exception: ") + e.what());
+    return false;
   }
+
+  return true;
 }
 
 
 //##################################################################################################
-void readPLYStream(std::istream& inputStream,
-                   std::string& error,
+bool readPLYStream(std::istream& inputStream,
                    int triangleFan,
                    int triangleStrip,
                    int triangles,
                    bool reverse,
-                   tp_math_utils::Geometry3D& outputGeometry)
+                   tp_math_utils::Geometry3D& outputGeometry,
+                   tp_utils::Progress* progress)
 {
   outputGeometry.triangleFan   = triangleFan;
   outputGeometry.triangleStrip = triangleStrip;
@@ -358,7 +362,9 @@ void readPLYStream(std::istream& inputStream,
   try
   {
     tinyply::PlyFile file;
+    progress->addMessage("Read header from input stream.");
     file.parse_header(inputStream);
+
 
     outputGeometry.comments = file.get_comments();
 
@@ -373,8 +379,13 @@ void readPLYStream(std::istream& inputStream,
     trifanDetails   .geometryType = triangleFan;
 
     //-- Parse the header --------------------------------------------------------------------------
+    progress->addMessage("Parse header.");
+
+    auto elements = file.get_elements();
+    progress->addMessage("Number of elements: " + std::to_string(elements.size()));
+
     bool printProperties = false;
-    for (const auto& e : file.get_elements())
+    for(const auto& e : elements)
     {
       if(printProperties)
       {
@@ -382,6 +393,8 @@ void readPLYStream(std::istream& inputStream,
         // for(const auto& p : e.properties)
         //   tpWarning() << "\tproperty - " << p.name << " (" << tinyply::PropertyTable[p.propertyType].str << ")" << std::endl;
       }
+
+      std::string error;
 
       if(e.name == "vertex")
         parseElement(file, error, e, vertexDetails);
@@ -391,6 +404,14 @@ void readPLYStream(std::istream& inputStream,
 
       else if(e.name == "tristrips")
         parseElement(file, error, e, tristripsDetails);
+
+      if(!error.empty())
+      {
+        progress->addError("Error processing elements!");
+        progress->addError(error);
+        progress->addError("Element name: " + e.name);
+        return false;
+      }
     }
 
     //-- Read the requested properties -------------------------------------------------------------
@@ -399,8 +420,8 @@ void readPLYStream(std::istream& inputStream,
     //-- Read in the verts -------------------------------------------------------------------------
     if(!readVertices(vertexDetails.vertices, outputGeometry))
     {
-      error = "Error reading vertices.";
-      return;
+      progress->addError("Error reading vertices.");
+      return false;
     }
 
     //-- Read in the other vertex properties -------------------------------------------------------
@@ -408,13 +429,26 @@ void readPLYStream(std::istream& inputStream,
     readTextures(vertexDetails.texcoords, outputGeometry);
 
     //-- Read in the faces -------------------------------------------------------------------------
-    readFaces(error,      faceDetails, reverse, outputGeometry);
-    readFaces(error, tristripsDetails, reverse, outputGeometry);
+    {
+      std::string error;
+      readFaces(error,      faceDetails, reverse, outputGeometry);
+      readFaces(error, tristripsDetails, reverse, outputGeometry);
+
+      if(!error.empty())
+      {
+        progress->addError("Error reading faces!");
+        progress->addError(error);
+        return false;
+      }
+    }
   }
   catch (const std::exception & e)
   {
-    error = std::string("Caught tinyply exception: ") + e.what();
+    progress->addError(std::string("Caught tinyply exception: ") + e.what());
+    return false;
   }
+
+  return true;
 }
 
 }
